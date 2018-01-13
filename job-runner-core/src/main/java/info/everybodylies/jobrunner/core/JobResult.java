@@ -5,5 +5,5 @@ import java.io.Serializable;
 /**
  * Данные, возвращаемые после выполнения задачи
  */
-public interface JobResult {
+public interface JobResult extends Serializable {
 }

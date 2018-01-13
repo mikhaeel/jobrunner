@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Класс предназначен для запуска и возврата результата выполнения задачи
@@ -19,7 +20,7 @@ public class JobRunner {
 
     private static final int THREAD_POOL_SIZE = 1;
     private Future<JobResult> jobResult;
-    private ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+    private ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE, new DaemonThreadFactory());
 
     public JobRunner(Callable<JobResult> job) {
         logger.debug("Getting new job for execution");
@@ -27,6 +28,11 @@ public class JobRunner {
         logger.debug("Job {} has been submitted", job);
     }
 
+    /**
+     * Возвращает результат работы программы
+     *
+     * @return Имплементация класса с результатами выполнения работы
+     */
     public JobResult getJobResult() {
         if (jobResult.isDone()) {
             try {
@@ -39,5 +45,25 @@ public class JobRunner {
             }
         }
         return null;
+    }
+
+    /**
+     * Вызывает неемедленное завершение выпполнения задачи и прекращает работу
+     */
+    public void stopExecution() {
+        if (!executorService.isTerminated()) {
+            executorService.shutdown();
+        }
+    }
+
+    /**
+     * Класс предназначен для запуска всех потоков в режиме демона
+     */
+    private static class DaemonThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+        }
     }
 }

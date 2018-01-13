@@ -1,12 +1,12 @@
 package info.everybodylies.jobrunner.dispatch;
 
-import info.everybodylies.job.arraysort.ArraySortJob;
-import info.everybodylies.job.arraysort.ArraySortJobData;
+import info.everybodylies.job.arraysort.ArrayJobProvider;
 import info.everybodylies.jobrunner.core.Job;
 import info.everybodylies.jobrunner.core.JobResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,22 +20,26 @@ public class JobDispatcher {
     private static final List<JobRunner> jobRunnerList = new ArrayList<>();
 
     public static void main(String[] args) {
-        // get job from somewhere
-        // create job runner
-        // get job result
-        logger.debug("Start JobDispatcher..");
-        logger.debug("try to create new JobData...");
-        ArraySortJobData data = new ArraySortJobData();
-        logger.debug("new jobData created!");
-        logger.debug("try to create new job...");
-        Job job = new ArraySortJob(data);
-        logger.debug("new job successfully created!");
-        JobRunner runner = new JobRunner(job);
-        jobRunnerList.add(runner);
-        JobResult jobResult = null;
-        while (jobResult == null) {
-            jobResult = runner.getJobResult();
+        try {
+            // get job from somewhere
+            JarClassloader jarClassloader = new JarClassloader("array-sort-job-1.0.jar");
+            logger.debug("Start JobDispatcher..");
+            // create job runner
+            logger.debug("try to get new job from JobProvider...");
+            ArrayJobProvider arrayJobProvider = new ArrayJobProvider();
+            logger.debug("new JobProvider successfully created!");
+            Job job = arrayJobProvider.getJob();
+            JobRunner runner = new JobRunner(job);
+            runner.stopExecution();
+            jobRunnerList.add(runner);
+            JobResult jobResult = null;
+            while (jobResult == null) {
+                jobResult = runner.getJobResult();
+            }
+            // get job result
+            logger.debug("Result from job: " + jobResult);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
-        logger.debug("Result from job: " + jobResult);
     }
 }
