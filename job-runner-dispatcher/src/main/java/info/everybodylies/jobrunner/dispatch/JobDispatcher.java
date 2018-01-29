@@ -2,6 +2,7 @@ package info.everybodylies.jobrunner.dispatch;
 
 import info.everybodylies.job.arraysort.ArrayJobProvider;
 import info.everybodylies.jobrunner.core.Job;
+import info.everybodylies.jobrunner.core.JobProvider;
 import info.everybodylies.jobrunner.core.JobResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,13 +23,14 @@ public class JobDispatcher {
     public static void main(String[] args) {
         try {
             // get job from somewhere
+            logger.debug("Try to get jar classloader...");
             JarClassloader jarClassloader = new JarClassloader("array-sort-job-1.0.jar");
             logger.debug("Start JobDispatcher..");
             // create job runner
             logger.debug("try to get new job from JobProvider...");
-            ArrayJobProvider arrayJobProvider = new ArrayJobProvider();
+            JobProvider jobProvider = jarClassloader.getMainClassInstance();
             logger.debug("new JobProvider successfully created!");
-            Job job = arrayJobProvider.getJob();
+            Job job = jobProvider.getJob();
             JobRunner runner = new JobRunner(job);
             runner.stopExecution();
             jobRunnerList.add(runner);
@@ -39,6 +41,7 @@ public class JobDispatcher {
             // get job result
             logger.debug("Result from job: " + jobResult);
         } catch (MalformedURLException e) {
+            logger.error("Exception while loading JarClassLoader: {}", e);
             e.printStackTrace();
         }
     }

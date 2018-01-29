@@ -31,14 +31,14 @@ public class JobRunner {
     /**
      * Возвращает результат работы программы
      *
-     * @return Имплементация класса с результатами выполнения работы
+     * @return Имплементация класса {@link JobResult} с результатами выполнения работы
      */
     public JobResult getJobResult() {
         if (jobResult.isDone()) {
             try {
                 logger.debug("Job is done. Sutting down executor...");
                 executorService.shutdown();
-                logger.debug("executorServvice is shutted down");
+                logger.debug("executorService is shutted down");
                 return jobResult.get();
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("Exceptions in jobResult.get(), {}", e);

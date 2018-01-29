@@ -31,12 +31,11 @@ package info.everybodylies.jobrunner.dispatch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import info.everybodylies.jobrunner.core.JobProvider;
+
 import java.io.File;
 import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.jar.Attributes;
 
 /**
@@ -52,22 +51,35 @@ class JarClassloader extends URLClassLoader {
      */
     public JarClassloader(String jarFilename) throws MalformedURLException {
         super(new URL[]{new File(jarFilename).toURI().toURL()});
-        this.url = url;
+        this.url = new File(jarFilename).toURI().toURL();
     }
 
     /**
      * Returns the name of the jar file main class, or null if
      * no "Main-Class" manifest attributes was defined.
      */
-    public String getMainClassName() throws IOException {
+    private String getMainClassName() throws IOException {
         URL u = new URL("jar", "", url + "!/");
         JarURLConnection uc = (JarURLConnection) u.openConnection();
         Attributes attr = uc.getMainAttributes();
         return attr != null ? attr.getValue(Attributes.Name.MAIN_CLASS) : null;
     }
 
-    public Object getMainClass() throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
-        Class<?> aClass = loadClass(getMainClassName());
-        return aClass.newInstance();
+    public JobProvider getMainClassInstance() {
+        Class<?> aClass;
+        try {
+            aClass = loadClass(getMainClassName());
+            try {
+                Object instance = aClass.newInstance();
+                if (instance instanceof JobProvider) {
+                    return (JobProvider)instance;
+                }
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
